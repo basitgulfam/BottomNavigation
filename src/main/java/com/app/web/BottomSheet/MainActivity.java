@@ -1,4 +1,4 @@
-package com.application.web.webtoapp;
+package com.app.web.BottomSheet;
 
 
 import android.Manifest;
@@ -25,7 +25,6 @@ import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -48,13 +47,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     WebView webView;
-    private String webUrl = "https://github.com";
+    private String webUrl = "https://www.telemart.pk/";
     private BottomSheetDialog bottomSheetDialog;
     ProgressBar progressBarWeb;
     ProgressDialog progressDialog;
     RelativeLayout relativeLayout;
-    Button btnNoInternetConnection;
+
     SwipeRefreshLayout swipeRefreshLayout;
+private int desktopmodevalue=0;
+
 
 
     @Override
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bottomNavigationView =findViewById(R.id.BottomNav);
 bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
         webView = (WebView) findViewById(R.id.myWebView);
+        webView.loadUrl(webUrl);
         progressBarWeb = (ProgressBar) findViewById(R.id.progressBar);
         progressDialog = new ProgressDialog(this);
         bottomSheetDialog=new BottomSheetDialog(MainActivity.this);
@@ -81,16 +83,25 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
         View ShrCrntpgView=bottomSheetDialogView.findViewById(R.id.shrCrntpg);
         View MenuView=bottomNavigationView.findViewById(R.id.nav_menu);
         View RtUsView=bottomSheetDialogView.findViewById(R.id.RtApp);
+        View CloseView=bottomSheetDialogView.findViewById(R.id.close);
+        View External=bottomSheetDialogView.findViewById(R.id.external);
+        View DesktopView=bottomSheetDialogView.findViewById(R.id.desktop);
         ReloadView.setOnClickListener(this);
         HomeView.setOnClickListener(this);
         ShareView.setOnClickListener(this);
         ShrCrntpgView.setOnClickListener(this);
         MenuView.setOnClickListener(this);
         RtUsView.setOnClickListener(this);
+        CloseView.setOnClickListener(this);
+        External.setOnClickListener(this);
+        DesktopView.setOnClickListener(this);
 
-        btnNoInternetConnection = (Button) findViewById(R.id.btnNoConnection);
         relativeLayout = (RelativeLayout) findViewById(R.id.relativeLayout);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setDisplayZoomControls(false);
 
         swipeRefreshLayout.setColorSchemeColors(Color.BLUE,Color.YELLOW,Color.GREEN);
 
@@ -117,10 +128,12 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
             webView.getSettings().setUseWideViewPort(true);
             webView.getSettings().setDomStorageEnabled(true);
             webView.getSettings().setLoadsImagesAutomatically(true);
-
+            webView.reload();
             checkConnection();
 
         }
+
+
 
 
 
@@ -164,9 +177,9 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
                                 Toast.makeText(MainActivity.this, "Downloading File..", Toast.LENGTH_SHORT).show();
 
                             }
-
+//For Permi
                             @Override
-                            public void onPermissionDenied(PermissionDeniedResponse response) {
+                            public void onPermissionDenied(PermissionDeniedResponse response ) {
 
                             }
 
@@ -209,9 +222,16 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
                 super.onPageStarted(view, url, favicon);
             }
 
+
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
+                if(url.contains("telemart.pk")) {
+                    view.loadUrl(url);
+                } else {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(i);
+                }
                 return true;
 
 
@@ -254,12 +274,7 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
 
 
 
-        btnNoInternetConnection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                checkConnection();
-            }
-        });
+
 
 
     }
@@ -326,6 +341,37 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
         }
     }
 
+    public void setDesktopMode(WebView webView,boolean enabled) {
+        String newUserAgent = webView.getSettings().getUserAgentString();
+        if (enabled) {
+            try {
+                String ua = webView.getSettings().getUserAgentString();
+                String androidOSString = webView.getSettings().getUserAgentString().substring(ua.indexOf("("), ua.indexOf(")") + 1);
+                newUserAgent = webView.getSettings().getUserAgentString().replace(androidOSString, "(X11; Linux x86_64)");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            newUserAgent = null;
+        }
+
+        webView.getSettings().setUserAgentString(newUserAgent);
+        webView.getSettings().setUseWideViewPort(enabled);
+        webView.getSettings().setLoadWithOverviewMode(enabled);
+        webView.reload();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     public void checkConnection(){
 
         ConnectivityManager connectivityManager = (ConnectivityManager)
@@ -335,14 +381,14 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
 
 
         if(wifi.isConnected()){
-            webView.loadUrl(webUrl);
+
             webView.setVisibility(View.VISIBLE);
             relativeLayout.setVisibility(View.GONE);
 
 
         }
         else if (mobileNetwork.isConnected()){
-            webView.loadUrl(webUrl);
+
             webView.setVisibility(View.VISIBLE);
             relativeLayout.setVisibility(View.GONE);
         }
@@ -419,23 +465,24 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
                 break;
 
             case R.id.Reload:
+                webView.reload();
                 checkConnection();
+
                 bottomSheetDialog.dismiss();
 
                 break;
             case R.id.Home:
-                webView.loadUrl("https://github.com");
+                webView.loadUrl("https://www.telemart.pk/");
 
                 bottomSheetDialog.dismiss();
                 break;
             case R.id.share:
-                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-                sharingIntent.setType("text/plain");
-                String shareBody = "https://github.com";
-                String shareSubject="GitHub";
-                sharingIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
-                sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareSubject);
-                startActivity(Intent.createChooser(sharingIntent,"Share Using"));
+                final String appPackageName = getPackageName();
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, "Check out the App at: https://play.google.com/store/apps/details?id=" + appPackageName);
+                sendIntent.setType("text/plain");
+                startActivity(sendIntent);
                 bottomSheetDialog.dismiss();
                 break;
             case R.id.shrCrntpg:
@@ -452,7 +499,28 @@ bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMehod);
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + getPackageName())));
                 bottomSheetDialog.dismiss();
                 break;
+            case R.id.close:
 
+                bottomSheetDialog.dismiss();
+                break;
+
+            case R.id.external:
+
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.telemart.pk/")));
+                bottomSheetDialog.dismiss();
+                break;
+            case R.id.desktop:
+                bottomSheetDialog.dismiss();
+                if(desktopmodevalue==0){
+                    setDesktopMode(webView,true);
+                    desktopmodevalue=1;
+                }
+                else
+                {
+                    setDesktopMode(webView,false);
+                    desktopmodevalue=0;
+                }
+                break;
 
         }
     }

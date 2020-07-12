@@ -90,17 +90,7 @@
                 android:textSize="26sp"
                 android:id="@+id/txtNoConnection"/>
 
-            <Button
-                android:layout_width="140dp"
-                android:layout_height="55dp"
-                android:text="Retry"
-                android:background="@color/colorAccent"
-                android:textColor="#ffffff"
 
-                android:layout_below="@id/txtNoConnection"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="60dp"
-                android:id="@+id/btnNoConnection"/>
 
 
 
